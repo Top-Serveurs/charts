@@ -3030,8 +3030,13 @@ class AxisChart extends BaseChart {
 
 		this.type = args.type || 'line';
 		this.init = 1;
+		this.linkedChart = null;
 
 		this.setup();
+	}
+
+	setLinkedChart(chart) {
+		this.linkedChart = chart;
 	}
 
 	setMeasures() {
@@ -3407,9 +3412,29 @@ class AxisChart extends BaseChart {
 				&& relY >  getTopOffset(m)) {
 				this.mapTooltipXPosition(relX);
 			} else {
-				this.tip.hideTip();
+				this.hideTooltip();
 			}
 		});
+	}
+
+	hideTooltip() {
+		this.tip.hideTip();
+		if (this.linkedChart && this.linkedChart.tip) {
+			this.linkedChart.tip.hideTip();
+		}
+	}
+
+	showTooltip(index) {
+		let dbi = this.dataByIndex[index];
+
+		this.tip.setValues(
+			dbi.xPos + this.tip.offset.x,
+			dbi.yExtreme + this.tip.offset.y,
+			{name: dbi.formattedLabel, value: ''},
+			dbi.values,
+			index
+		);
+		this.tip.showTip();
 	}
 
 	mapTooltipXPosition(relX) {
@@ -3418,17 +3443,12 @@ class AxisChart extends BaseChart {
 
 		let index = getClosestInArray(relX, s.xAxis.positions, true);
 		if (index >= 0) {
-			let dbi = this.dataByIndex[index];
-
-			this.tip.setValues(
-				dbi.xPos + this.tip.offset.x,
-				dbi.yExtreme + this.tip.offset.y,
-				{name: dbi.formattedLabel, value: ''},
-				dbi.values,
-				index
-			);
-
-			this.tip.showTip();
+			this.showTooltip(index);
+			if (this.linkedChart) {
+				this.linkedChart.showTooltip(index);
+			}
+		} else {
+			this.hideTooltip();
 		}
 	}
 
@@ -3765,11 +3785,6 @@ function getChartByType(chartType = 'line', parent, options) {
 	if (chartType === 'axis-mixed') {
 		options.type = 'line';
 		return new AxisChart(parent, options);
-	}
-
-	if (!chartTypes[chartType]) {
-		console.error("Undefined chart type: " + chartType);
-		return;
 	}
 
 	return new chartTypes[chartType](parent, options);

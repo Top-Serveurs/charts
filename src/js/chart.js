@@ -19,11 +19,6 @@ function getChartByType(chartType = 'line', parent, options) {
 		return new AxisChart(parent, options);
 	}
 
-	if (!chartTypes[chartType]) {
-		console.error("Undefined chart type: " + chartType);
-		return;
-	}
-
 	return new chartTypes[chartType](parent, options);
 }
 
