@@ -83,22 +83,6 @@ let componentConfigs = {
 			return this.store.map((slice, i) => animatePathStr(slice, newData.sliceStrings[i]));
 		},
 	},
-	pieSlices: {
-		layerClass: 'pie-slices',
-		makeElements(data) {
-			return data.sliceStrings.map((s, i) =>{
-				let slice = makePath(s, 'pie-path', 'none', data.colors[i]);
-				slice.style.transition = 'transform .3s;';
-				return slice;
-			});
-		},
-
-		animateElements(newData) {
-			return this.store.map((slice, i) =>
-				animatePathStr(slice, newData.sliceStrings[i])
-			);
-		}
-	},
 	percentageBars: {
 		layerClass: 'percentage-bars',
 		makeElements(data) {
@@ -252,16 +236,15 @@ let componentConfigs = {
 	heatDomain: {
 		layerClass: function() { return 'heat-domain domain-' + this.constants.index; },
 		makeElements(data) {
-			let {index, colWidth, rowHeight, squareSize, radius, xTranslate} = this.constants;
+			let {index, colWidth, rowHeight, squareSize, radius, xTranslate, lang} = this.constants;
 			let monthNameHeight = -12;
 			let x = xTranslate, y = 0;
 
 			this.serializedSubDomains = [];
-
 			data.cols.map((week, weekNo) => {
 				if(weekNo === 1) {
 					this.labels.push(
-						makeText('domain-name', x, monthNameHeight, getMonthName(index, true).toUpperCase(),
+						makeText('domain-name', x, monthNameHeight, getMonthName(index, true, lang).toUpperCase(),
 							{
 								fontSize: 9
 							}

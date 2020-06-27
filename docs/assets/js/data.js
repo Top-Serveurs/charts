@@ -1,7 +1,8 @@
-import { MONTH_NAMES_SHORT } from "../../../src/js/utils/date-utils";
 
 // Composite Chart
 // ================================================================================
+import {MONTH_NAMES_SHORT} from "../../../src/js/utils/i18n";
+
 const reportCountList = [
 	152,
 	222,
@@ -89,7 +90,7 @@ export const fireballOver25 = [
 ];
 
 export const barCompositeData = {
-	labels: MONTH_NAMES_SHORT,
+	labels: MONTH_NAMES_SHORT.en,
 	datasets: [
 		{
 			name: "Over 25 reports",

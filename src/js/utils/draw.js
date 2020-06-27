@@ -1,7 +1,6 @@
 import { getBarHeightAndYAttr, truncateString, shortenLargeNumber, getSplineCurvePointsStr } from './draw-utils';
 import { getStringWidth } from './helpers';
 import { DOT_OVERLAY_SIZE_INCR, PERCENTAGE_BAR_DEFAULT_DEPTH } from './constants';
-import { lightenDarkenColor } from './colors';
 
 export const AXIS_TICK_LENGTH = 6;
 const LABEL_MARGIN = 4;
@@ -179,7 +178,6 @@ export function percentageBar(x, y, width, height,
 		height: height,
 		fill: fill,
 		styles: {
-			'stroke': lightenDarkenColor(fill, -25),
 			// Diabolically good: https://stackoverflow.com/a/9000859
 			// https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray
 			'stroke-dasharray': `0, ${height + width}, ${width}, ${height}`,

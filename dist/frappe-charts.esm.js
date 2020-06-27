@@ -155,20 +155,10 @@ const DEFAULT_CHAR_WIDTH = 7;
 
 const TOOLTIP_POINTER_TRIANGLE_HEIGHT = 5;
 
-const DEFAULT_CHART_COLORS = ['light-blue', 'blue', 'violet', 'red', 'orange',
-	'yellow', 'green', 'light-green', 'purple', 'magenta', 'light-grey', 'dark-grey'];
-const HEATMAP_COLORS_GREEN = ['#ebedf0', '#c6e48b', '#7bc96f', '#239a3b', '#196127'];
 
 
 
-const DEFAULT_COLORS = {
-	bar: DEFAULT_CHART_COLORS,
-	line: DEFAULT_CHART_COLORS,
-	pie: DEFAULT_CHART_COLORS,
-	percentage: DEFAULT_CHART_COLORS,
-	heatmap: HEATMAP_COLORS_GREEN,
-	donut: DEFAULT_CHART_COLORS
-};
+
 
 // Universal constants
 const ANGLE_RATIO = Math.PI / 180;
@@ -299,10 +289,6 @@ class SvgTip {
 	}
 }
 
-/**
- * Returns the value of a number upto 2 decimal places.
- * @param {Number} d Any number
- */
 function floatTwo(d) {
 	return parseFloat(d.toFixed(2));
 }
@@ -455,54 +441,6 @@ function getSplineCurvePointsStr(xList, yList) {
 	return pointStr(points, bezierCommand);
 }
 
-const PRESET_COLOR_MAP = {
-	'light-blue': '#7cd6fd',
-	'blue': '#5e64ff',
-	'violet': '#743ee2',
-	'red': '#ff5858',
-	'orange': '#ffa00a',
-	'yellow': '#feef72',
-	'green': '#28a745',
-	'light-green': '#98d85b',
-	'purple': '#b554ff',
-	'magenta': '#ffa3ef',
-	'black': '#36114C',
-	'grey': '#bdd3e6',
-	'light-grey': '#f0f4f7',
-	'dark-grey': '#b8c2cc'
-};
-
-function limitColor(r){
-	if (r > 255) return 255;
-	else if (r < 0) return 0;
-	return r;
-}
-
-function lightenDarkenColor(color, amt) {
-	let col = getColor(color);
-	let usePound = false;
-	if (col[0] == "#") {
-		col = col.slice(1);
-		usePound = true;
-	}
-	let num = parseInt(col,16);
-	let r = limitColor((num >> 16) + amt);
-	let b = limitColor(((num >> 8) & 0x00FF) + amt);
-	let g = limitColor((num & 0x0000FF) + amt);
-	return (usePound?"#":"") + (g | (b << 8) | (r << 16)).toString(16);
-}
-
-function isValidColor(string) {
-	// https://stackoverflow.com/a/32685393
-	let HEX_RE = /(^\s*)(#)((?:[A-Fa-f0-9]{3}){1,2})$/i;
-	let RGB_RE = /(^\s*)(rgb|hsl)(a?)[(]\s*([\d.]+\s*%?)\s*,\s*([\d.]+\s*%?)\s*,\s*([\d.]+\s*%?)\s*(?:,\s*([\d.]+)\s*)?[)]$/i;
-	return HEX_RE.test(string) || RGB_RE.test(string);
-}
-
-const getColor = (color) => {
-	return PRESET_COLOR_MAP[color] || color;
-};
-
 const AXIS_TICK_LENGTH = 6;
 const LABEL_MARGIN = 4;
 const LABEL_MAX_CHARS = 15;
@@ -605,26 +543,9 @@ function makePath(pathStr, className='', stroke='none', fill='none', strokeWidth
 	});
 }
 
-function makeArcPathStr(startPosition, endPosition, center, radius, clockWise=1, largeArc=0){
-	let [arcStartX, arcStartY] = [center.x + startPosition.x, center.y + startPosition.y];
-	let [arcEndX, arcEndY] = [center.x + endPosition.x, center.y + endPosition.y];
-	return `M${center.x} ${center.y}
-		L${arcStartX} ${arcStartY}
-		A ${radius} ${radius} 0 ${largeArc} ${clockWise ? 1 : 0}
-		${arcEndX} ${arcEndY} z`;
-}
 
-function makeCircleStr(startPosition, endPosition, center, radius, clockWise=1, largeArc=0){
-	let [arcStartX, arcStartY] = [center.x + startPosition.x, center.y + startPosition.y];
-	let [arcEndX, midArc, arcEndY] = [center.x + endPosition.x, center.y * 2, center.y + endPosition.y];
-	return `M${center.x} ${center.y}
-		L${arcStartX} ${arcStartY}
-		A ${radius} ${radius} 0 ${largeArc} ${clockWise ? 1 : 0}
-		${arcEndX} ${midArc} z
-		L${arcStartX} ${midArc}
-		A ${radius} ${radius} 0 ${largeArc} ${clockWise ? 1 : 0}
-		${arcEndX} ${arcEndY} z`;
-}
+
+
 
 function makeArcStrokePathStr(startPosition, endPosition, center, radius, clockWise=1, largeArc=0){
 	let [arcStartX, arcStartY] = [center.x + startPosition.x, center.y + startPosition.y];
@@ -673,7 +594,6 @@ function percentageBar(x, y, width, height,
 		height: height,
 		fill: fill,
 		styles: {
-			'stroke': lightenDarkenColor(fill, -25),
 			// Diabolically good: https://stackoverflow.com/a/9000859
 			// https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray
 			'stroke-dasharray': `0, ${height + width}, ${width}, ${height}`,
@@ -1485,7 +1405,7 @@ class BaseChart {
 		this.realData = this.prepareData(options.data);
 		this.data = this.prepareFirstData(this.realData);
 
-		this.colors = this.validateColors(options.colors, this.type);
+		this.colors = options.colors;
 
 		this.config = {
 			showTooltip: 1, // calculate
@@ -1520,20 +1440,6 @@ class BaseChart {
 
 	prepareFirstData(data) {
 		return data;
-	}
-
-	validateColors(colors, type) {
-		const validColors = [];
-		colors = (colors || []).concat(DEFAULT_COLORS[type]);
-		colors.forEach((string) => {
-			const color = getColor(string);
-			if(!isValidColor(color)) {
-				console.warn('"' + string + '" is not a valid color.');
-			} else {
-				validColors.push(color);
-			}
-		});
-		return validColors;
 	}
 
 	setMeasures() {
@@ -1857,6 +1763,37 @@ class AggregationChart extends BaseChart {
 	}
 }
 
+const MONTH_NAMES = {
+	"fr": ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
+	"en": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+};
+
+
+
+const DAY_NAMES_SHORT =  {
+	"fr": ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+	"en": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+};
+
+
+
+const LESS =  {
+	"fr": ["Moins"],
+	"en": ["Less"],
+};
+
+const MORE =  {
+	"fr": ["Plus"],
+	"en": ["More"],
+};
+
+const heatmapTooltip = (lang, day, month, year) => {
+	if (lang === 'fr') {
+		return ' le ' + day + ' ' + month + ' ' + year;
+	}
+	return ' on ' + month + ' ' + day + ', ' + year;
+};
+
 // Playing around with dates
 
 const NO_OF_YEAR_MONTHS = 12;
@@ -1864,13 +1801,6 @@ const NO_OF_DAYS_IN_WEEK = 7;
 
 const NO_OF_MILLIS = 1000;
 const SEC_IN_DAY = 86400;
-
-const MONTH_NAMES = ["January", "February", "March", "April", "May",
-	"June", "July", "August", "September", "October", "November", "December"];
-
-
-const DAY_NAMES_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
 
 // https://stackoverflow.com/a/11252167/6495043
 function treatAsUtc(date) {
@@ -1914,8 +1844,8 @@ function areInSameMonth(startDate, endDate) {
 		&& startDate.getFullYear() === endDate.getFullYear();
 }
 
-function getMonthName(i, short=false) {
-	let monthName = MONTH_NAMES[i];
+function getMonthName(i, short= false, lang = "en") {
+	let monthName = MONTH_NAMES[lang][i];
 	return short ? monthName.slice(0, 3) : monthName;
 }
 
@@ -2015,22 +1945,6 @@ let componentConfigs = {
 		animateElements(newData) {
 			return this.store.map((slice, i) => animatePathStr(slice, newData.sliceStrings[i]));
 		},
-	},
-	pieSlices: {
-		layerClass: 'pie-slices',
-		makeElements(data) {
-			return data.sliceStrings.map((s, i) =>{
-				let slice = makePath(s, 'pie-path', 'none', data.colors[i]);
-				slice.style.transition = 'transform .3s;';
-				return slice;
-			});
-		},
-
-		animateElements(newData) {
-			return this.store.map((slice, i) =>
-				animatePathStr(slice, newData.sliceStrings[i])
-			);
-		}
 	},
 	percentageBars: {
 		layerClass: 'percentage-bars',
@@ -2185,16 +2099,15 @@ let componentConfigs = {
 	heatDomain: {
 		layerClass: function() { return 'heat-domain domain-' + this.constants.index; },
 		makeElements(data) {
-			let {index, colWidth, rowHeight, squareSize, radius, xTranslate} = this.constants;
+			let {index, colWidth, rowHeight, squareSize, radius, xTranslate, lang} = this.constants;
 			let monthNameHeight = -12;
 			let x = xTranslate, y = 0;
 
 			this.serializedSubDomains = [];
-
 			data.cols.map((week, weekNo) => {
 				if(weekNo === 1) {
 					this.labels.push(
-						makeText('domain-name', x, monthNameHeight, getMonthName(index, true).toUpperCase(),
+						makeText('domain-name', x, monthNameHeight, getMonthName(index, true, lang).toUpperCase(),
 							{
 								fontSize: 9
 							}
@@ -2466,153 +2379,6 @@ class PercentageChart extends AggregationChart {
 	}
 }
 
-class PieChart extends AggregationChart {
-	constructor(parent, args) {
-		super(parent, args);
-		this.type = 'pie';
-		this.initTimeout = 0;
-		this.init = 1;
-
-		this.setup();
-	}
-
-	configure(args) {
-		super.configure(args);
-		this.mouseMove = this.mouseMove.bind(this);
-		this.mouseLeave = this.mouseLeave.bind(this);
-
-		this.hoverRadio = args.hoverRadio || 0.1;
-		this.config.startAngle = args.startAngle || 0;
-
-		this.clockWise = args.clockWise || false;
-	}
-
-	calc() {
-		super.calc();
-		let s = this.state;
-		this.radius = (this.height > this.width ? this.center.x : this.center.y);
-
-		const { radius, clockWise } = this;
-
-		const prevSlicesProperties = s.slicesProperties || [];
-		s.sliceStrings = [];
-		s.slicesProperties = [];
-		let curAngle = 180 - this.config.startAngle;
-		s.sliceTotals.map((total, i) => {
-			const startAngle = curAngle;
-			const originDiffAngle = (total / s.grandTotal) * FULL_ANGLE;
-			const largeArc = originDiffAngle > 180 ? 1: 0;
-			const diffAngle = clockWise ? -originDiffAngle : originDiffAngle;
-			const endAngle = curAngle = curAngle + diffAngle;
-			const startPosition = getPositionByAngle(startAngle, radius);
-			const endPosition = getPositionByAngle(endAngle, radius);
-
-			const prevProperty = this.init && prevSlicesProperties[i];
-
-			let curStart,curEnd;
-			if(this.init) {
-				curStart = prevProperty ? prevProperty.startPosition : startPosition;
-				curEnd = prevProperty ? prevProperty.endPosition : startPosition;
-			} else {
-				curStart = startPosition;
-				curEnd = endPosition;
-			}
-			const curPath =
-				originDiffAngle === 360
-					? makeCircleStr(curStart, curEnd, this.center, this.radius, clockWise, largeArc)
-					: makeArcPathStr(curStart, curEnd, this.center, this.radius, clockWise, largeArc);
-
-			s.sliceStrings.push(curPath);
-			s.slicesProperties.push({
-				startPosition,
-				endPosition,
-				value: total,
-				total: s.grandTotal,
-				startAngle,
-				endAngle,
-				angle: diffAngle
-			});
-
-		});
-		this.init = 0;
-	}
-
-	setupComponents() {
-		let s = this.state;
-
-		let componentConfigs = [
-			[
-				'pieSlices',
-				{ },
-				function() {
-					return {
-						sliceStrings: s.sliceStrings,
-						colors: this.colors
-					};
-				}.bind(this)
-			]
-		];
-
-		this.components = new Map(componentConfigs
-			.map(args => {
-				let component = getComponent(...args);
-				return [args[0], component];
-			}));
-	}
-
-	calTranslateByAngle(property){
-		const{radius,hoverRadio} = this;
-		const position = getPositionByAngle(property.startAngle+(property.angle / 2),radius);
-		return `translate3d(${(position.x) * hoverRadio}px,${(position.y) * hoverRadio}px,0)`;
-	}
-
-	hoverSlice(path,i,flag,e){
-		if(!path) return;
-		const color = this.colors[i];
-		if(flag) {
-			transform(path, this.calTranslateByAngle(this.state.slicesProperties[i]));
-			path.style.fill = lightenDarkenColor(color, 50);
-			let g_off = getOffset(this.svg);
-			let x = e.pageX - g_off.left + 10;
-			let y = e.pageY - g_off.top - 10;
-			let title = (this.formatted_labels && this.formatted_labels.length > 0
-				? this.formatted_labels[i] : this.state.labels[i]) + ': ';
-			let percent = (this.state.sliceTotals[i] * 100 / this.state.grandTotal).toFixed(1);
-			this.tip.setValues(x, y, {name: title, value: percent + "%"});
-			this.tip.showTip();
-		} else {
-			transform(path,'translate3d(0,0,0)');
-			this.tip.hideTip();
-			path.style.fill = color;
-		}
-	}
-
-	bindTooltip() {
-		this.container.addEventListener('mousemove', this.mouseMove);
-		this.container.addEventListener('mouseleave', this.mouseLeave);
-	}
-
-	mouseMove(e){
-		const target = e.target;
-		let slices = this.components.get('pieSlices').store;
-		let prevIndex = this.curActiveSliceIndex;
-		let prevAcitve = this.curActiveSlice;
-		if(slices.includes(target)) {
-			let i = slices.indexOf(target);
-			this.hoverSlice(prevAcitve, prevIndex,false);
-			this.curActiveSlice = target;
-			this.curActiveSliceIndex = i;
-			this.hoverSlice(target, i, true, e);
-		} else {
-			this.mouseLeave();
-		}
-	}
-
-	mouseLeave(){
-		this.hoverSlice(this.curActiveSlice,this.curActiveSliceIndex,false);
-	}
-}
-
 function normalize(x) {
 	// Calculates mantissa and exponent of a number
 	// Returns normalized number and exponent
@@ -2836,45 +2602,46 @@ function getMaxCheckpoint(value, distribution) {
 	return distribution.filter(d => d < value).length;
 }
 
-const COL_WIDTH = HEATMAP_SQUARE_SIZE + HEATMAP_GUTTER_SIZE;
-const ROW_HEIGHT = COL_WIDTH;
-// const DAY_INCR = 1;
-
 class Heatmap extends BaseChart {
 	constructor(parent, options) {
 		super(parent, options);
 		this.type = 'heatmap';
-
+		this.lang = options.lang;
 		this.countLabel = options.countLabel || '';
-
-		let validStarts = ['Sunday', 'Monday'];
-		let startSubDomain = validStarts.includes(options.startSubDomain)
-			? options.startSubDomain : 'Sunday';
-		this.startSubDomainIndex = validStarts.indexOf(startSubDomain);
-
+		this.startSubDomainIndex = options.isMondayFirst ? 1 : 0;
 		this.setup();
 	}
 
+	setBoxSizes() {
+		const parentWidth = getElementContentWidth(this.parent);
+		this.squareSize = parentWidth > 1000 ? 13 : HEATMAP_SQUARE_SIZE;
+
+		this.colWidth = this.squareSize + HEATMAP_GUTTER_SIZE;
+		this.rowHeight = this.colWidth;
+	}
+
 	setMeasures(options) {
+		this.setBoxSizes();
 		let m = this.measures;
 		this.discreteDomains = options.discreteDomains === 0 ? 0 : 1;
 
-		m.paddings.top = ROW_HEIGHT * 3;
+		m.paddings.top = this.rowHeight * 3;
 		m.paddings.bottom = 0;
-		m.legendHeight = ROW_HEIGHT * 2;
-		m.baseHeight = ROW_HEIGHT * NO_OF_DAYS_IN_WEEK
+		m.legendHeight = this.rowHeight * 2;
+		m.baseHeight = this.rowHeight * NO_OF_DAYS_IN_WEEK
 			+ getExtraHeight(m);
 
 		let d = this.data;
 		let spacing = this.discreteDomains ? NO_OF_YEAR_MONTHS : 0;
 		this.independentWidth = (getWeeksBetween(d.start, d.end)
-			+ spacing) * COL_WIDTH + getExtraWidth(m);
+			+ spacing) * this.colWidth + getExtraWidth(m);
 	}
 
 	updateWidth() {
+		this.setBoxSizes();
 		let spacing = this.discreteDomains ? NO_OF_YEAR_MONTHS : 0;
 		let noOfWeeks = this.state.noOfWeeks ? this.state.noOfWeeks : 52;
-		this.baseWidth = (noOfWeeks + spacing) * COL_WIDTH
+		this.baseWidth = (noOfWeeks + spacing) * this.colWidth
 			+ getExtraWidth(this.measures);
 	}
 
@@ -2924,15 +2691,16 @@ class Heatmap extends BaseChart {
 			'heatDomain',
 			{
 				index: config.index,
-				colWidth: COL_WIDTH,
-				rowHeight: ROW_HEIGHT,
-				squareSize: HEATMAP_SQUARE_SIZE,
+				lang: this.lang,
+				colWidth: this.colWidth,
+				rowHeight: this.rowHeight,
+				squareSize: this.squareSize,
 				radius: this.rawChartArgs.radius || 0,
 				xTranslate: s.domainConfigs
 					.filter((config, j) => j < i)
 					.map(config => config.cols.length - lessCol)
 					.reduce((a, b) => a + b, 0)
-					* COL_WIDTH
+					* this.colWidth
 			},
 			function() {
 				return s.domainConfigs[i];
@@ -2948,9 +2716,9 @@ class Heatmap extends BaseChart {
 		);
 
 		let y = 0;
-		DAY_NAMES_SHORT.forEach((dayName, i) => {
+		DAY_NAMES_SHORT[this.lang].forEach((dayName, i) => {
 			if([1, 3, 5].includes(i)) {
-				let dayText = makeText('subdomain-name', -COL_WIDTH/2, y, dayName,
+				let dayText = makeText('subdomain-name', -this.colWidth/2, y, dayName,
 					{
 						fontSize: HEATMAP_SQUARE_SIZE,
 						dy: 8,
@@ -2959,7 +2727,7 @@ class Heatmap extends BaseChart {
 				);
 				this.drawArea.appendChild(dayText);
 			}
-			y += ROW_HEIGHT;
+			y += this.rowHeight;
 		});
 	}
 
@@ -2983,7 +2751,7 @@ class Heatmap extends BaseChart {
 					let count = daySquare.getAttribute('data-value');
 					let dateParts = daySquare.getAttribute('data-date').split('-');
 
-					let month = getMonthName(parseInt(dateParts[1])-1, true);
+					let month = getMonthName(parseInt(dateParts[1])-1, true, this.lang);
 
 					let gOff = this.container.getBoundingClientRect(), pOff = daySquare.getBoundingClientRect();
 
@@ -2991,7 +2759,7 @@ class Heatmap extends BaseChart {
 					let x = pOff.left - gOff.left + width/2;
 					let y = pOff.top - gOff.top;
 					let value = count + ' ' + this.countLabel;
-					let name = ' on ' + month + ' ' + dateParts[0] + ', ' + dateParts[2];
+					let name = heatmapTooltip(this.lang, dateParts[2], month, dateParts[0]);
 
 					this.tip.setValues(x, y, {name: name, value: value, valueFirst: 1}, []);
 					this.tip.showTip();
@@ -3003,26 +2771,26 @@ class Heatmap extends BaseChart {
 	renderLegend() {
 		this.legendArea.textContent = '';
 		let x = 0;
-		let y = ROW_HEIGHT;
+		let y = this.rowHeight;
 		let radius = this.rawChartArgs.radius || 0;
 
-		let lessText = makeText('subdomain-name', x, y, 'Less',
+		let lessText = makeText('subdomain-name', x, y, LESS[this.lang],
 			{
 				fontSize: HEATMAP_SQUARE_SIZE + 1,
 				dy: 9
 			}
 		);
-		x = (COL_WIDTH * 2) + COL_WIDTH/2;
+		x = (HEATMAP_SQUARE_SIZE * 3) + HEATMAP_SQUARE_SIZE/2;
 		this.legendArea.appendChild(lessText);
 
 		this.colors.slice(0, HEATMAP_DISTRIBUTION_SIZE).map((color, i) => {
-			const square = heatSquare('heatmap-legend-unit', x + (COL_WIDTH + 3) * i,
+			const square = heatSquare('heatmap-legend-unit', x + (HEATMAP_SQUARE_SIZE + 3) * i,
 				y, HEATMAP_SQUARE_SIZE, radius, color);
 			this.legendArea.appendChild(square);
 		});
 
-		let moreTextX = x + HEATMAP_DISTRIBUTION_SIZE * (COL_WIDTH + 3) + COL_WIDTH/4;
-		let moreText = makeText('subdomain-name', moreTextX, y, 'More',
+		let moreTextX = x + HEATMAP_DISTRIBUTION_SIZE * (HEATMAP_SQUARE_SIZE + 3) + HEATMAP_SQUARE_SIZE/4;
+		let moreText = makeText('subdomain-name', moreTextX, y, MORE[this.lang],
 			{
 				fontSize: HEATMAP_SQUARE_SIZE + 1,
 				dy: 9
@@ -3944,7 +3712,6 @@ class DonutChart extends AggregationChart {
 		const color = this.colors[i];
 		if(flag) {
 			transform(path, this.calTranslateByAngle(this.state.slicesProperties[i]));
-			path.style.stroke = lightenDarkenColor(color, 50);
 			let g_off = getOffset(this.svg);
 			let x = e.pageX - g_off.left + 10;
 			let y = e.pageY - g_off.top - 10;
@@ -3986,14 +3753,11 @@ class DonutChart extends AggregationChart {
 	}
 }
 
-// import MultiAxisChart from './charts/MultiAxisChart';
 const chartTypes = {
 	bar: AxisChart,
 	line: AxisChart,
-	// multiaxis: MultiAxisChart,
 	percentage: PercentageChart,
 	heatmap: Heatmap,
-	pie: PieChart,
 	donut: DonutChart,
 };
 
@@ -4017,4 +3781,4 @@ class Chart {
 	}
 }
 
-export { Chart, PercentageChart, PieChart, Heatmap, AxisChart };
+export { Chart, PercentageChart, Heatmap, AxisChart };

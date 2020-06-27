@@ -1,19 +1,12 @@
 // Playing around with dates
 
+import {MONTH_NAMES} from "./i18n";
+
 export const NO_OF_YEAR_MONTHS = 12;
 export const NO_OF_DAYS_IN_WEEK = 7;
 export const DAYS_IN_YEAR = 375;
 export const NO_OF_MILLIS = 1000;
 export const SEC_IN_DAY = 86400;
-
-export const MONTH_NAMES = ["January", "February", "March", "April", "May",
-	"June", "July", "August", "September", "October", "November", "December"];
-export const MONTH_NAMES_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-	"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-export const DAY_NAMES_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-export const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday",
-	"Thursday", "Friday", "Saturday"];
 
 // https://stackoverflow.com/a/11252167/6495043
 function treatAsUtc(date) {
@@ -65,8 +58,8 @@ export function areInSameMonth(startDate, endDate) {
 		&& startDate.getFullYear() === endDate.getFullYear();
 }
 
-export function getMonthName(i, short=false) {
-	let monthName = MONTH_NAMES[i];
+export function getMonthName(i, short= false, lang = "en") {
+	let monthName = MONTH_NAMES[lang][i];
 	return short ? monthName.slice(0, 3) : monthName;
 }
 

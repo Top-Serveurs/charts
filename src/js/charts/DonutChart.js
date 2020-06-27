@@ -3,7 +3,6 @@ import { getComponent } from '../objects/ChartComponents';
 import { getOffset } from '../utils/dom';
 import { getPositionByAngle } from '../utils/helpers';
 import { makeArcStrokePathStr, makeStrokeCircleStr } from '../utils/draw';
-import { lightenDarkenColor } from '../utils/colors';
 import { transform } from '../utils/animation';
 import { FULL_ANGLE } from '../utils/constants';
 
@@ -118,7 +117,6 @@ export default class DonutChart extends AggregationChart {
 		const color = this.colors[i];
 		if(flag) {
 			transform(path, this.calTranslateByAngle(this.state.slicesProperties[i]));
-			path.style.stroke = lightenDarkenColor(color, 50);
 			let g_off = getOffset(this.svg);
 			let x = e.pageX - g_off.left + 10;
 			let y = e.pageY - g_off.top - 10;

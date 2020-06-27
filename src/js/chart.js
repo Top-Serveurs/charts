@@ -1,8 +1,6 @@
 import '../css/charts.scss';
 
-// import MultiAxisChart from './charts/MultiAxisChart';
 import PercentageChart from './charts/PercentageChart';
-import PieChart from './charts/PieChart';
 import Heatmap from './charts/Heatmap';
 import AxisChart from './charts/AxisChart';
 import DonutChart from './charts/DonutChart';
@@ -10,10 +8,8 @@ import DonutChart from './charts/DonutChart';
 const chartTypes = {
 	bar: AxisChart,
 	line: AxisChart,
-	// multiaxis: MultiAxisChart,
 	percentage: PercentageChart,
 	heatmap: Heatmap,
-	pie: PieChart,
 	donut: DonutChart,
 };
 
@@ -37,4 +33,4 @@ class Chart {
 	}
 }
 
-export { Chart, PercentageChart, PieChart, Heatmap, AxisChart };
+export { Chart, PercentageChart, Heatmap, AxisChart };

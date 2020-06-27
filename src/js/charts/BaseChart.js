@@ -2,8 +2,7 @@ import SvgTip from '../objects/SvgTip';
 import { $, isElementInViewport, getElementContentWidth } from '../utils/dom';
 import { makeSVGContainer, makeSVGDefs, makeSVGGroup, makeText } from '../utils/draw';
 import { BASE_MEASURES, getExtraHeight, getExtraWidth, getTopOffset, getLeftOffset,
-	INIT_CHART_UPDATE_TIMEOUT, CHART_POST_ANIMATE_TIMEOUT, DEFAULT_COLORS} from '../utils/constants';
-import { getColor, isValidColor } from '../utils/colors';
+	INIT_CHART_UPDATE_TIMEOUT, CHART_POST_ANIMATE_TIMEOUT} from '../utils/constants';
 import { runSMILAnimation } from '../utils/animation';
 import { downloadFile, prepareForExport } from '../utils/export';
 
@@ -26,7 +25,7 @@ export default class BaseChart {
 		this.realData = this.prepareData(options.data);
 		this.data = this.prepareFirstData(this.realData);
 
-		this.colors = this.validateColors(options.colors, this.type);
+		this.colors = options.colors;
 
 		this.config = {
 			showTooltip: 1, // calculate
@@ -61,20 +60,6 @@ export default class BaseChart {
 
 	prepareFirstData(data) {
 		return data;
-	}
-
-	validateColors(colors, type) {
-		const validColors = [];
-		colors = (colors || []).concat(DEFAULT_COLORS[type]);
-		colors.forEach((string) => {
-			const color = getColor(string);
-			if(!isValidColor(color)) {
-				console.warn('"' + string + '" is not a valid color.');
-			} else {
-				validColors.push(color);
-			}
-		});
-		return validColors;
 	}
 
 	setMeasures() {

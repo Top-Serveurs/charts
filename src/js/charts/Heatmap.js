@@ -1,51 +1,54 @@
 import BaseChart from './BaseChart';
 import { getComponent } from '../objects/ChartComponents';
 import { makeText, heatSquare } from '../utils/draw';
-import { DAY_NAMES_SHORT, addDays, areInSameMonth, getLastDateInMonth, setDayToSunday, getYyyyMmDd, getWeeksBetween, getMonthName, clone,
+import { addDays, areInSameMonth, getLastDateInMonth, setDayToSunday, getYyyyMmDd, getWeeksBetween, getMonthName, clone,
 	NO_OF_MILLIS, NO_OF_YEAR_MONTHS, NO_OF_DAYS_IN_WEEK } from '../utils/date-utils';
 import { calcDistribution, getMaxCheckpoint } from '../utils/intervals';
 import { getExtraHeight, getExtraWidth, HEATMAP_DISTRIBUTION_SIZE, HEATMAP_SQUARE_SIZE,
 	HEATMAP_GUTTER_SIZE } from '../utils/constants';
-
-const COL_WIDTH = HEATMAP_SQUARE_SIZE + HEATMAP_GUTTER_SIZE;
-const ROW_HEIGHT = COL_WIDTH;
-// const DAY_INCR = 1;
+import {DAY_NAMES_SHORT, heatmapTooltip, LESS, MORE} from "../utils/i18n";
+import {getElementContentWidth} from "../utils/dom";
 
 export default class Heatmap extends BaseChart {
 	constructor(parent, options) {
 		super(parent, options);
 		this.type = 'heatmap';
-
+		this.lang = options.lang;
 		this.countLabel = options.countLabel || '';
-
-		let validStarts = ['Sunday', 'Monday'];
-		let startSubDomain = validStarts.includes(options.startSubDomain)
-			? options.startSubDomain : 'Sunday';
-		this.startSubDomainIndex = validStarts.indexOf(startSubDomain);
-
+		this.startSubDomainIndex = options.isMondayFirst ? 1 : 0;
 		this.setup();
 	}
 
+	setBoxSizes() {
+		const parentWidth = getElementContentWidth(this.parent);
+		this.squareSize = parentWidth > 1000 ? 13 : HEATMAP_SQUARE_SIZE;
+
+		this.colWidth = this.squareSize + HEATMAP_GUTTER_SIZE;
+		this.rowHeight = this.colWidth;
+	}
+
 	setMeasures(options) {
+		this.setBoxSizes();
 		let m = this.measures;
 		this.discreteDomains = options.discreteDomains === 0 ? 0 : 1;
 
-		m.paddings.top = ROW_HEIGHT * 3;
+		m.paddings.top = this.rowHeight * 3;
 		m.paddings.bottom = 0;
-		m.legendHeight = ROW_HEIGHT * 2;
-		m.baseHeight = ROW_HEIGHT * NO_OF_DAYS_IN_WEEK
+		m.legendHeight = this.rowHeight * 2;
+		m.baseHeight = this.rowHeight * NO_OF_DAYS_IN_WEEK
 			+ getExtraHeight(m);
 
 		let d = this.data;
 		let spacing = this.discreteDomains ? NO_OF_YEAR_MONTHS : 0;
 		this.independentWidth = (getWeeksBetween(d.start, d.end)
-			+ spacing) * COL_WIDTH + getExtraWidth(m);
+			+ spacing) * this.colWidth + getExtraWidth(m);
 	}
 
 	updateWidth() {
+		this.setBoxSizes();
 		let spacing = this.discreteDomains ? NO_OF_YEAR_MONTHS : 0;
 		let noOfWeeks = this.state.noOfWeeks ? this.state.noOfWeeks : 52;
-		this.baseWidth = (noOfWeeks + spacing) * COL_WIDTH
+		this.baseWidth = (noOfWeeks + spacing) * this.colWidth
 			+ getExtraWidth(this.measures);
 	}
 
@@ -95,15 +98,16 @@ export default class Heatmap extends BaseChart {
 			'heatDomain',
 			{
 				index: config.index,
-				colWidth: COL_WIDTH,
-				rowHeight: ROW_HEIGHT,
-				squareSize: HEATMAP_SQUARE_SIZE,
+				lang: this.lang,
+				colWidth: this.colWidth,
+				rowHeight: this.rowHeight,
+				squareSize: this.squareSize,
 				radius: this.rawChartArgs.radius || 0,
 				xTranslate: s.domainConfigs
 					.filter((config, j) => j < i)
 					.map(config => config.cols.length - lessCol)
 					.reduce((a, b) => a + b, 0)
-					* COL_WIDTH
+					* this.colWidth
 			},
 			function() {
 				return s.domainConfigs[i];
@@ -119,9 +123,9 @@ export default class Heatmap extends BaseChart {
 		);
 
 		let y = 0;
-		DAY_NAMES_SHORT.forEach((dayName, i) => {
+		DAY_NAMES_SHORT[this.lang].forEach((dayName, i) => {
 			if([1, 3, 5].includes(i)) {
-				let dayText = makeText('subdomain-name', -COL_WIDTH/2, y, dayName,
+				let dayText = makeText('subdomain-name', -this.colWidth/2, y, dayName,
 					{
 						fontSize: HEATMAP_SQUARE_SIZE,
 						dy: 8,
@@ -130,7 +134,7 @@ export default class Heatmap extends BaseChart {
 				);
 				this.drawArea.appendChild(dayText);
 			}
-			y += ROW_HEIGHT;
+			y += this.rowHeight;
 		});
 	}
 
@@ -154,7 +158,7 @@ export default class Heatmap extends BaseChart {
 					let count = daySquare.getAttribute('data-value');
 					let dateParts = daySquare.getAttribute('data-date').split('-');
 
-					let month = getMonthName(parseInt(dateParts[1])-1, true);
+					let month = getMonthName(parseInt(dateParts[1])-1, true, this.lang);
 
 					let gOff = this.container.getBoundingClientRect(), pOff = daySquare.getBoundingClientRect();
 
@@ -162,7 +166,7 @@ export default class Heatmap extends BaseChart {
 					let x = pOff.left - gOff.left + width/2;
 					let y = pOff.top - gOff.top;
 					let value = count + ' ' + this.countLabel;
-					let name = ' on ' + month + ' ' + dateParts[0] + ', ' + dateParts[2];
+					let name = heatmapTooltip(this.lang, dateParts[2], month, dateParts[0]);
 
 					this.tip.setValues(x, y, {name: name, value: value, valueFirst: 1}, []);
 					this.tip.showTip();
@@ -174,26 +178,26 @@ export default class Heatmap extends BaseChart {
 	renderLegend() {
 		this.legendArea.textContent = '';
 		let x = 0;
-		let y = ROW_HEIGHT;
+		let y = this.rowHeight;
 		let radius = this.rawChartArgs.radius || 0;
 
-		let lessText = makeText('subdomain-name', x, y, 'Less',
+		let lessText = makeText('subdomain-name', x, y, LESS[this.lang],
 			{
 				fontSize: HEATMAP_SQUARE_SIZE + 1,
 				dy: 9
 			}
 		);
-		x = (COL_WIDTH * 2) + COL_WIDTH/2;
+		x = (HEATMAP_SQUARE_SIZE * 3) + HEATMAP_SQUARE_SIZE/2;
 		this.legendArea.appendChild(lessText);
 
 		this.colors.slice(0, HEATMAP_DISTRIBUTION_SIZE).map((color, i) => {
-			const square = heatSquare('heatmap-legend-unit', x + (COL_WIDTH + 3) * i,
+			const square = heatSquare('heatmap-legend-unit', x + (HEATMAP_SQUARE_SIZE + 3) * i,
 				y, HEATMAP_SQUARE_SIZE, radius, color);
 			this.legendArea.appendChild(square);
 		});
 
-		let moreTextX = x + HEATMAP_DISTRIBUTION_SIZE * (COL_WIDTH + 3) + COL_WIDTH/4;
-		let moreText = makeText('subdomain-name', moreTextX, y, 'More',
+		let moreTextX = x + HEATMAP_DISTRIBUTION_SIZE * (HEATMAP_SQUARE_SIZE + 3) + HEATMAP_SQUARE_SIZE/4;
+		let moreText = makeText('subdomain-name', moreTextX, y, MORE[this.lang],
 			{
 				fontSize: HEATMAP_SQUARE_SIZE + 1,
 				dy: 9
