@@ -1,8 +1,8 @@
 import { makeSVGGroup } from '../utils/draw';
-import { makeText, makePath, xLine, yLine, yMarker, yRegion, datasetBar, datasetDot, percentageBar, getPaths, heatSquare } from '../utils/draw';
+import { makeText, xLine, yLine, yMarker, yRegion, datasetBar, datasetDot, getPaths, heatSquare } from '../utils/draw';
 import { equilizeNoOfElements } from '../utils/draw-utils';
 import { translateHoriLine, translateVertLine, animateRegion, animateBar,
-	animateDot, animatePath, animatePathStr } from '../utils/animate';
+	animateDot, animatePath } from '../utils/animate';
 import { getMonthName } from '../utils/date-utils';
 
 class ChartComponent {
@@ -69,35 +69,6 @@ class ChartComponent {
 }
 
 let componentConfigs = {
-	donutSlices: {
-		layerClass: 'donut-slices',
-		makeElements(data) {
-			return data.sliceStrings.map((s, i) => {
-				let slice = makePath(s, 'donut-path', data.colors[i], 'none', data.strokeWidth);
-				slice.style.transition = 'transform .3s;';
-				return slice;
-			});
-		},
-
-		animateElements(newData) {
-			return this.store.map((slice, i) => animatePathStr(slice, newData.sliceStrings[i]));
-		},
-	},
-	percentageBars: {
-		layerClass: 'percentage-bars',
-		makeElements(data) {
-			return data.xPositions.map((x, i) =>{
-				let y = 0;
-				let bar = percentageBar(x, y, data.widths[i],
-					this.constants.barHeight, this.constants.barDepth, data.colors[i]);
-				return bar;
-			});
-		},
-
-		animateElements(newData) {
-			if(newData) return [];
-		}
-	},
 	yAxis: {
 		layerClass: 'y axis',
 		makeElements(data) {

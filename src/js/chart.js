@@ -1,16 +1,12 @@
 import '../css/charts.scss';
 
-import PercentageChart from './charts/PercentageChart';
 import Heatmap from './charts/Heatmap';
 import AxisChart from './charts/AxisChart';
-import DonutChart from './charts/DonutChart';
 
 const chartTypes = {
 	bar: AxisChart,
 	line: AxisChart,
-	percentage: PercentageChart,
-	heatmap: Heatmap,
-	donut: DonutChart,
+	heatmap: Heatmap
 };
 
 function getChartByType(chartType = 'line', parent, options) {
@@ -28,4 +24,4 @@ class Chart {
 	}
 }
 
-export { Chart, PercentageChart, Heatmap, AxisChart };
+export { Chart, Heatmap, AxisChart };

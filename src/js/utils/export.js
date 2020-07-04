@@ -7,7 +7,7 @@ export function downloadFile(filename, data) {
 	var blob = new Blob(data, {type: "image/svg+xml; charset=utf-8"});
 	var url = window.URL.createObjectURL(blob);
 	a.href = url;
-	a.download = filename;
+	a.download = "chart.svg";
 	document.body.appendChild(a);
 	a.click();
 	setTimeout(function(){

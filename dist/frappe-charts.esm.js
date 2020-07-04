@@ -141,8 +141,8 @@ const MIN_BAR_PERCENT_HEIGHT = 0.00;
 const LINE_CHART_DOT_SIZE = 4;
 const DOT_OVERLAY_SIZE_INCR = 4;
 
-const PERCENTAGE_BAR_DEFAULT_HEIGHT = 20;
-const PERCENTAGE_BAR_DEFAULT_DEPTH = 2;
+
+
 
 // Fixed 5-color theme,
 // More colors are difficult to parse visually
@@ -161,8 +161,6 @@ const TOOLTIP_POINTER_TRIANGLE_HEIGHT = 5;
 
 
 // Universal constants
-const ANGLE_RATIO = Math.PI / 180;
-const FULL_ANGLE = 360;
 
 class SvgTip {
 	constructor({
@@ -289,6 +287,10 @@ class SvgTip {
 	}
 }
 
+/**
+ * Returns the value of a number upto 2 decimal places.
+ * @param {Number} d Any number
+ */
 function floatTwo(d) {
 	return parseFloat(d.toFixed(2));
 }
@@ -334,14 +336,6 @@ function getStringWidth(string, charWidth) {
 
 
 // https://stackoverflow.com/a/29325222
-
-
-function getPositionByAngle(angle, radius) {
-	return {
-		x: Math.sin(angle * ANGLE_RATIO) * radius,
-		y: Math.cos(angle * ANGLE_RATIO) * radius,
-	};
-}
 
 function getBarHeightAndYAttr(yTop, zeroLine) {
 	let height, y;
@@ -543,31 +537,6 @@ function makePath(pathStr, className='', stroke='none', fill='none', strokeWidth
 	});
 }
 
-
-
-
-
-function makeArcStrokePathStr(startPosition, endPosition, center, radius, clockWise=1, largeArc=0){
-	let [arcStartX, arcStartY] = [center.x + startPosition.x, center.y + startPosition.y];
-	let [arcEndX, arcEndY] = [center.x + endPosition.x, center.y + endPosition.y];
-
-	return `M${arcStartX} ${arcStartY}
-		A ${radius} ${radius} 0 ${largeArc} ${clockWise ? 1 : 0}
-		${arcEndX} ${arcEndY}`;
-}
-
-function makeStrokeCircleStr(startPosition, endPosition, center, radius, clockWise=1, largeArc=0){
-	let [arcStartX, arcStartY] = [center.x + startPosition.x, center.y + startPosition.y];
-	let [arcEndX, midArc, arcEndY] = [center.x + endPosition.x, radius * 2 + arcStartY, center.y + startPosition.y];
-
-	return `M${arcStartX} ${arcStartY}
-		A ${radius} ${radius} 0 ${largeArc} ${clockWise ? 1 : 0}
-		${arcEndX} ${midArc}
-		M${arcStartX} ${midArc}
-		A ${radius} ${radius} 0 ${largeArc} ${clockWise ? 1 : 0}
-		${arcEndX} ${arcEndY}`;
-}
-
 function makeGradient(svgDefElem, color, lighter = false) {
 	let gradientId ='path-fill-gradient' + '-' + color + '-' +(lighter ? 'lighter' : 'default');
 	let gradientDef = renderVerticalGradient(svgDefElem, gradientId);
@@ -581,27 +550,6 @@ function makeGradient(svgDefElem, color, lighter = false) {
 	setGradientStop(gradientDef, "100%", color, opacities[2]);
 
 	return gradientId;
-}
-
-function percentageBar(x, y, width, height,
-	depth=PERCENTAGE_BAR_DEFAULT_DEPTH, fill='none') {
-
-	let args = {
-		className: 'percentage-bar',
-		x: x,
-		y: y,
-		width: width,
-		height: height,
-		fill: fill,
-		styles: {
-			// Diabolically good: https://stackoverflow.com/a/9000859
-			// https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray
-			'stroke-dasharray': `0, ${height + width}, ${width}, ${height}`,
-			'stroke-width': depth
-		},
-	};
-
-	return createSVG("rect", args);
 }
 
 function heatSquare(className, x, y, size, radius, fill='none', data={}) {
@@ -653,36 +601,7 @@ function legendBar(x, y, size, fill='none', label, truncate=false) {
 	return group;
 }
 
-function legendDot(x, y, size, fill='none', label, truncate=false) {
-	label = truncate ? truncateString(label, LABEL_MAX_CHARS) : label;
 
-	let args = {
-		className: 'legend-dot',
-		cx: 0,
-		cy: 0,
-		r: size,
-		fill: fill
-	};
-	let text = createSVG('text', {
-		className: 'legend-dataset-text',
-		x: 0,
-		y: 0,
-		dx: (FONT_SIZE) + 'px',
-		dy: (FONT_SIZE/3) + 'px',
-		'font-size': (FONT_SIZE * 1.2) + 'px',
-		'text-anchor': 'start',
-		fill: FONT_FILL,
-		innerHTML: label
-	});
-
-	let group = createSVG('g', {
-		transform: `translate(${x}, ${y})`
-	});
-	group.appendChild(createSVG("circle", args));
-	group.appendChild(text);
-
-	return group;
-}
 
 function makeText(className, x, y, content, options = {}) {
 	let fontSize = options.fontSize || FONT_SIZE;
@@ -1234,10 +1153,6 @@ function animatePath(paths, newXList, newYList, zeroLine, spline) {
 	return pathComponents;
 }
 
-function animatePathStr(oldPath, pathStr) {
-	return [oldPath, {d: pathStr}, UNIT_ANIM_DUR, STD_EASING];
-}
-
 // Leveraging SMIL Animations
 
 const EASING = {
@@ -1297,13 +1212,7 @@ function animateSVGElement(element, props, dur, easingType="linear", type=undefi
 	return [animElement, newElement];
 }
 
-function transform(element, style) { // eslint-disable-line no-unused-vars
-	element.style.transform = style;
-	element.style.webkitTransform = style;
-	element.style.msTransform = style;
-	element.style.mozTransform = style;
-	element.style.oTransform = style;
-}
+
 
 function animateSVG(svgContainer, elements) {
 	let newElements = [];
@@ -1361,7 +1270,7 @@ function downloadFile(filename, data) {
 	var blob = new Blob(data, {type: "image/svg+xml; charset=utf-8"});
 	var url = window.URL.createObjectURL(blob);
 	a.href = url;
-	a.download = filename;
+	a.download = "chart.svg";
 	document.body.appendChild(a);
 	a.click();
 	setTimeout(function(){
@@ -1675,94 +1584,6 @@ class BaseChart {
 	}
 }
 
-class AggregationChart extends BaseChart {
-	constructor(parent, args) {
-		super(parent, args);
-	}
-
-	configure(args) {
-		super.configure(args);
-
-		this.config.maxSlices = args.maxSlices || 20;
-		this.config.maxLegendPoints = args.maxLegendPoints || 20;
-	}
-
-	calc() {
-		let s = this.state;
-		let maxSlices = this.config.maxSlices;
-		s.sliceTotals = [];
-
-		let allTotals = this.data.labels.map((label, i) => {
-			let total = 0;
-			this.data.datasets.map(e => {
-				total += e.values[i];
-			});
-			return [total, label];
-		}).filter(d => { return d[0] >= 0; }); // keep only positive results
-
-		let totals = allTotals;
-		if(allTotals.length > maxSlices) {
-			// Prune and keep a grey area for rest as per maxSlices
-			allTotals.sort((a, b) => { return b[0] - a[0]; });
-
-			totals = allTotals.slice(0, maxSlices-1);
-			let remaining = allTotals.slice(maxSlices-1);
-
-			let sumOfRemaining = 0;
-			remaining.map(d => {sumOfRemaining += d[0];});
-			totals.push([sumOfRemaining, 'Rest']);
-			this.colors[maxSlices-1] = 'grey';
-		}
-
-		s.labels = [];
-		totals.map(d => {
-			s.sliceTotals.push(d[0]);
-			s.labels.push(d[1]);
-		});
-
-		s.grandTotal = s.sliceTotals.reduce((a, b) => a + b, 0);
-
-		this.center = {
-			x: this.width / 2,
-			y: this.height / 2
-		};
-	}
-
-	renderLegend() {
-		let s = this.state;
-		this.legendArea.textContent = '';
-		this.legendTotals = s.sliceTotals.slice(0, this.config.maxLegendPoints);
-
-		let count = 0;
-		let y = 0;
-		this.legendTotals.map((d, i) => {
-			let barWidth = 150;
-			let divisor = Math.floor(
-				(this.width - getExtraWidth(this.measures))/barWidth
-			);
-			if (this.legendTotals.length < divisor) {
-				barWidth = this.width/this.legendTotals.length;
-			}
-			if(count > divisor) {
-				count = 0;
-				y += 20;
-			}
-			let x = barWidth * count + 5;
-			let label = this.config.truncateLegends ? truncateString(s.labels[i], barWidth/10) : s.labels[i];
-			let dot = legendDot(
-				x,
-				y,
-				5,
-				this.colors[i],
-				`${label}: ${d}`,
-				false
-			);
-			this.legendArea.appendChild(dot);
-			count++;
-		});
-	}
-}
-
 const MONTH_NAMES = {
 	"fr": ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
 	"en": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
@@ -1932,35 +1753,6 @@ class ChartComponent {
 }
 
 let componentConfigs = {
-	donutSlices: {
-		layerClass: 'donut-slices',
-		makeElements(data) {
-			return data.sliceStrings.map((s, i) => {
-				let slice = makePath(s, 'donut-path', data.colors[i], 'none', data.strokeWidth);
-				slice.style.transition = 'transform .3s;';
-				return slice;
-			});
-		},
-
-		animateElements(newData) {
-			return this.store.map((slice, i) => animatePathStr(slice, newData.sliceStrings[i]));
-		},
-	},
-	percentageBars: {
-		layerClass: 'percentage-bars',
-		makeElements(data) {
-			return data.xPositions.map((x, i) =>{
-				let y = 0;
-				let bar = percentageBar(x, y, data.widths[i],
-					this.constants.barHeight, this.constants.barDepth, data.colors[i]);
-				return bar;
-			});
-		},
-
-		animateElements(newData) {
-			if(newData) return [];
-		}
-	},
 	yAxis: {
 		layerClass: 'y axis',
 		makeElements(data) {
@@ -2289,94 +2081,6 @@ function getComponent(name, constants, getData) {
 		getData: getData
 	});
 	return new ChartComponent(config);
-}
-
-class PercentageChart extends AggregationChart {
-	constructor(parent, args) {
-		super(parent, args);
-		this.type = 'percentage';
-		this.setup();
-	}
-
-	setMeasures(options) {
-		let m = this.measures;
-		this.barOptions = options.barOptions || {};
-
-		let b = this.barOptions;
-		b.height = b.height || PERCENTAGE_BAR_DEFAULT_HEIGHT;
-		b.depth = b.depth || PERCENTAGE_BAR_DEFAULT_DEPTH;
-
-		m.paddings.right = 30;
-		m.legendHeight = 60;
-		m.baseHeight = (b.height + b.depth * 0.5) * 8;
-	}
-
-	setupComponents() {
-		let s = this.state;
-
-		let componentConfigs = [
-			[
-				'percentageBars',
-				{
-					barHeight: this.barOptions.height,
-					barDepth: this.barOptions.depth,
-				},
-				function() {
-					return {
-						xPositions: s.xPositions,
-						widths: s.widths,
-						colors: this.colors
-					};
-				}.bind(this)
-			]
-		];
-
-		this.components = new Map(componentConfigs
-			.map(args => {
-				let component = getComponent(...args);
-				return [args[0], component];
-			}));
-	}
-
-	calc() {
-		super.calc();
-		let s = this.state;
-
-		s.xPositions = [];
-		s.widths = [];
-
-		let xPos = 0;
-		s.sliceTotals.map((value) => {
-			let width = this.width * value / s.grandTotal;
-			s.widths.push(width);
-			s.xPositions.push(xPos);
-			xPos += width;
-		});
-	}
-
-	makeDataByIndex() { }
-
-	bindTooltip() {
-		let s = this.state;
-		this.container.addEventListener('mousemove', (e) => {
-			let bars = this.components.get('percentageBars').store;
-			let bar = e.target;
-			if(bars.includes(bar)) {
-
-				let i = bars.indexOf(bar);
-				let gOff = getOffset(this.container), pOff = getOffset(bar);
-
-				let x = pOff.left - gOff.left + parseInt(bar.getAttribute('width'))/2;
-				let y = pOff.top - gOff.top;
-				let title = (this.formattedLabels && this.formattedLabels.length>0
-					? this.formattedLabels[i] : this.state.labels[i]) + ': ';
-				let fraction = s.sliceTotals[i]/s.grandTotal;
-
-				this.tip.setValues(x, y, {name: title, value: (fraction*100).toFixed(1) + "%"});
-				this.tip.showTip();
-			}
-		});
-	}
 }
 
 function normalize(x) {
@@ -3621,164 +3325,10 @@ class AxisChart extends BaseChart {
 	// removeDataPoint(index = 0) {}
 }
 
-class DonutChart extends AggregationChart {
-	constructor(parent, args) {
-		super(parent, args);
-		this.type = 'donut';
-		this.initTimeout = 0;
-		this.init = 1;
-
-		this.setup();
-	}
-
-	configure(args) {
-		super.configure(args);
-		this.mouseMove = this.mouseMove.bind(this);
-		this.mouseLeave = this.mouseLeave.bind(this);
-
-		this.hoverRadio = args.hoverRadio || 0.1;
-		this.config.startAngle = args.startAngle || 0;
-
-		this.clockWise = args.clockWise || false;
-		this.strokeWidth = args.strokeWidth || 30;
-	}
-
-	calc() {
-		super.calc();
-		let s = this.state;
-		this.radius =
-			this.height > this.width
-				? this.center.x - this.strokeWidth / 2
-				: this.center.y - this.strokeWidth / 2;
-
-		const { radius, clockWise } = this;
-
-		const prevSlicesProperties = s.slicesProperties || [];
-		s.sliceStrings = [];
-		s.slicesProperties = [];
-		let curAngle = 180 - this.config.startAngle;
-
-		s.sliceTotals.map((total, i) => {
-			const startAngle = curAngle;
-			const originDiffAngle = (total / s.grandTotal) * FULL_ANGLE;
-			const largeArc = originDiffAngle > 180 ? 1: 0;
-			const diffAngle = clockWise ? -originDiffAngle : originDiffAngle;
-			const endAngle = curAngle = curAngle + diffAngle;
-			const startPosition = getPositionByAngle(startAngle, radius);
-			const endPosition = getPositionByAngle(endAngle, radius);
-
-			const prevProperty = this.init && prevSlicesProperties[i];
-
-			let curStart,curEnd;
-			if(this.init) {
-				curStart = prevProperty ? prevProperty.startPosition : startPosition;
-				curEnd = prevProperty ? prevProperty.endPosition : startPosition;
-			} else {
-				curStart = startPosition;
-				curEnd = endPosition;
-			}
-			const curPath =
-				originDiffAngle === 360
-					? makeStrokeCircleStr(curStart, curEnd, this.center, this.radius, this.clockWise, largeArc)
-					: makeArcStrokePathStr(curStart, curEnd, this.center, this.radius, this.clockWise, largeArc);
-
-			s.sliceStrings.push(curPath);
-			s.slicesProperties.push({
-				startPosition,
-				endPosition,
-				value: total,
-				total: s.grandTotal,
-				startAngle,
-				endAngle,
-				angle: diffAngle
-			});
-
-		});
-		this.init = 0;
-	}
-
-	setupComponents() {
-		let s = this.state;
-
-		let componentConfigs = [
-			[
-				'donutSlices',
-				{ },
-				function() {
-					return {
-						sliceStrings: s.sliceStrings,
-						colors: this.colors,
-						strokeWidth: this.strokeWidth,
-					};
-				}.bind(this)
-			]
-		];
-
-		this.components = new Map(componentConfigs
-			.map(args => {
-				let component = getComponent(...args);
-				return [args[0], component];
-			}));
-	}
-
-	calTranslateByAngle(property){
-		const{ radius, hoverRadio } = this;
-		const position = getPositionByAngle(property.startAngle+(property.angle / 2),radius);
-		return `translate3d(${(position.x) * hoverRadio}px,${(position.y) * hoverRadio}px,0)`;
-	}
-
-	hoverSlice(path,i,flag,e){
-		if(!path) return;
-		const color = this.colors[i];
-		if(flag) {
-			transform(path, this.calTranslateByAngle(this.state.slicesProperties[i]));
-			let g_off = getOffset(this.svg);
-			let x = e.pageX - g_off.left + 10;
-			let y = e.pageY - g_off.top - 10;
-			let title = (this.formatted_labels && this.formatted_labels.length > 0
-				? this.formatted_labels[i] : this.state.labels[i]) + ': ';
-			let percent = (this.state.sliceTotals[i] * 100 / this.state.grandTotal).toFixed(1);
-			this.tip.setValues(x, y, {name: title, value: percent + "%"});
-			this.tip.showTip();
-		} else {
-			transform(path,'translate3d(0,0,0)');
-			this.tip.hideTip();
-			path.style.stroke = color;
-		}
-	}
-
-	bindTooltip() {
-		this.container.addEventListener('mousemove', this.mouseMove);
-		this.container.addEventListener('mouseleave', this.mouseLeave);
-	}
-
-	mouseMove(e){
-		const target = e.target;
-		let slices = this.components.get('donutSlices').store;
-		let prevIndex = this.curActiveSliceIndex;
-		let prevAcitve = this.curActiveSlice;
-		if(slices.includes(target)) {
-			let i = slices.indexOf(target);
-			this.hoverSlice(prevAcitve, prevIndex,false);
-			this.curActiveSlice = target;
-			this.curActiveSliceIndex = i;
-			this.hoverSlice(target, i, true, e);
-		} else {
-			this.mouseLeave();
-		}
-	}
-
-	mouseLeave(){
-		this.hoverSlice(this.curActiveSlice,this.curActiveSliceIndex,false);
-	}
-}
-
 const chartTypes = {
 	bar: AxisChart,
 	line: AxisChart,
-	percentage: PercentageChart,
-	heatmap: Heatmap,
-	donut: DonutChart,
+	heatmap: Heatmap
 };
 
 function getChartByType(chartType = 'line', parent, options) {
@@ -3796,4 +3346,4 @@ class Chart {
 	}
 }
 
-export { Chart, PercentageChart, Heatmap, AxisChart };
+export { Chart, Heatmap, AxisChart };

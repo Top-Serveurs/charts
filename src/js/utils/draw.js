@@ -1,6 +1,6 @@
 import { getBarHeightAndYAttr, truncateString, shortenLargeNumber, getSplineCurvePointsStr } from './draw-utils';
 import { getStringWidth } from './helpers';
-import { DOT_OVERLAY_SIZE_INCR, PERCENTAGE_BAR_DEFAULT_DEPTH } from './constants';
+import { DOT_OVERLAY_SIZE_INCR } from './constants';
 
 export const AXIS_TICK_LENGTH = 6;
 const LABEL_MARGIN = 4;
@@ -110,48 +110,6 @@ export function makePath(pathStr, className='', stroke='none', fill='none', stro
 	});
 }
 
-export function makeArcPathStr(startPosition, endPosition, center, radius, clockWise=1, largeArc=0){
-	let [arcStartX, arcStartY] = [center.x + startPosition.x, center.y + startPosition.y];
-	let [arcEndX, arcEndY] = [center.x + endPosition.x, center.y + endPosition.y];
-	return `M${center.x} ${center.y}
-		L${arcStartX} ${arcStartY}
-		A ${radius} ${radius} 0 ${largeArc} ${clockWise ? 1 : 0}
-		${arcEndX} ${arcEndY} z`;
-}
-
-export function makeCircleStr(startPosition, endPosition, center, radius, clockWise=1, largeArc=0){
-	let [arcStartX, arcStartY] = [center.x + startPosition.x, center.y + startPosition.y];
-	let [arcEndX, midArc, arcEndY] = [center.x + endPosition.x, center.y * 2, center.y + endPosition.y];
-	return `M${center.x} ${center.y}
-		L${arcStartX} ${arcStartY}
-		A ${radius} ${radius} 0 ${largeArc} ${clockWise ? 1 : 0}
-		${arcEndX} ${midArc} z
-		L${arcStartX} ${midArc}
-		A ${radius} ${radius} 0 ${largeArc} ${clockWise ? 1 : 0}
-		${arcEndX} ${arcEndY} z`;
-}
-
-export function makeArcStrokePathStr(startPosition, endPosition, center, radius, clockWise=1, largeArc=0){
-	let [arcStartX, arcStartY] = [center.x + startPosition.x, center.y + startPosition.y];
-	let [arcEndX, arcEndY] = [center.x + endPosition.x, center.y + endPosition.y];
-
-	return `M${arcStartX} ${arcStartY}
-		A ${radius} ${radius} 0 ${largeArc} ${clockWise ? 1 : 0}
-		${arcEndX} ${arcEndY}`;
-}
-
-export function makeStrokeCircleStr(startPosition, endPosition, center, radius, clockWise=1, largeArc=0){
-	let [arcStartX, arcStartY] = [center.x + startPosition.x, center.y + startPosition.y];
-	let [arcEndX, midArc, arcEndY] = [center.x + endPosition.x, radius * 2 + arcStartY, center.y + startPosition.y];
-
-	return `M${arcStartX} ${arcStartY}
-		A ${radius} ${radius} 0 ${largeArc} ${clockWise ? 1 : 0}
-		${arcEndX} ${midArc}
-		M${arcStartX} ${midArc}
-		A ${radius} ${radius} 0 ${largeArc} ${clockWise ? 1 : 0}
-		${arcEndX} ${arcEndY}`;
-}
-
 export function makeGradient(svgDefElem, color, lighter = false) {
 	let gradientId ='path-fill-gradient' + '-' + color + '-' +(lighter ? 'lighter' : 'default');
 	let gradientDef = renderVerticalGradient(svgDefElem, gradientId);
@@ -165,27 +123,6 @@ export function makeGradient(svgDefElem, color, lighter = false) {
 	setGradientStop(gradientDef, "100%", color, opacities[2]);
 
 	return gradientId;
-}
-
-export function percentageBar(x, y, width, height,
-	depth=PERCENTAGE_BAR_DEFAULT_DEPTH, fill='none') {
-
-	let args = {
-		className: 'percentage-bar',
-		x: x,
-		y: y,
-		width: width,
-		height: height,
-		fill: fill,
-		styles: {
-			// Diabolically good: https://stackoverflow.com/a/9000859
-			// https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray
-			'stroke-dasharray': `0, ${height + width}, ${width}, ${height}`,
-			'stroke-width': depth
-		},
-	};
-
-	return createSVG("rect", args);
 }
 
 export function heatSquare(className, x, y, size, radius, fill='none', data={}) {
