@@ -6,8 +6,8 @@ import { addDays, areInSameMonth, getLastDateInMonth, setDayToSunday, getYyyyMmD
 import { calcDistribution, getMaxCheckpoint } from '../utils/intervals';
 import { getExtraHeight, getExtraWidth, HEATMAP_DISTRIBUTION_SIZE, HEATMAP_SQUARE_SIZE,
 	HEATMAP_GUTTER_SIZE } from '../utils/constants';
-import {DAY_NAMES_SHORT, heatmapTooltip, LESS, MORE} from "../utils/i18n";
 import {getElementContentWidth} from "../utils/dom";
+import {heatmapTooltip} from "../utils/i18n";
 
 export default class Heatmap extends BaseChart {
 	constructor(parent, options) {
@@ -123,7 +123,7 @@ export default class Heatmap extends BaseChart {
 		);
 
 		let y = 0;
-		DAY_NAMES_SHORT[this.lang].forEach((dayName, i) => {
+		window.i18n.daysShort.forEach((dayName, i) => {
 			if([1, 3, 5].includes(i)) {
 				let dayText = makeText('subdomain-name', -this.colWidth/2, y, dayName,
 					{
@@ -158,7 +158,7 @@ export default class Heatmap extends BaseChart {
 					let count = daySquare.getAttribute('data-value');
 					let dateParts = daySquare.getAttribute('data-date').split('-');
 
-					let month = getMonthName(parseInt(dateParts[1])-1, true, this.lang);
+					let month = getMonthName(parseInt(dateParts[1])-1, true);
 
 					let gOff = this.container.getBoundingClientRect(), pOff = daySquare.getBoundingClientRect();
 
@@ -181,7 +181,7 @@ export default class Heatmap extends BaseChart {
 		let y = this.rowHeight;
 		let radius = this.rawChartArgs.radius || 0;
 
-		let lessText = makeText('subdomain-name', x, y, LESS[this.lang],
+		let lessText = makeText('subdomain-name', x, y, window.i18n.less,
 			{
 				fontSize: HEATMAP_SQUARE_SIZE + 1,
 				dy: 9
@@ -197,7 +197,7 @@ export default class Heatmap extends BaseChart {
 		});
 
 		let moreTextX = x + HEATMAP_DISTRIBUTION_SIZE * (HEATMAP_SQUARE_SIZE + 3) + HEATMAP_SQUARE_SIZE/4;
-		let moreText = makeText('subdomain-name', moreTextX, y, MORE[this.lang],
+		let moreText = makeText('subdomain-name', moreTextX, y, window.i18n.more,
 			{
 				fontSize: HEATMAP_SQUARE_SIZE + 1,
 				dy: 9

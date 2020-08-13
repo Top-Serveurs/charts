@@ -1,7 +1,5 @@
 // Playing around with dates
 
-import {MONTH_NAMES} from "./i18n";
-
 export const NO_OF_YEAR_MONTHS = 12;
 export const NO_OF_DAYS_IN_WEEK = 7;
 export const DAYS_IN_YEAR = 375;
@@ -58,8 +56,8 @@ export function areInSameMonth(startDate, endDate) {
 		&& startDate.getFullYear() === endDate.getFullYear();
 }
 
-export function getMonthName(i, short= false, lang = "en") {
-	let monthName = MONTH_NAMES[lang][i];
+export function getMonthName(i, short= false) {
+	let monthName = window.i18n.picker.monthNames[i];
 	return short ? monthName.slice(0, 3) : monthName;
 }
 

@@ -1584,37 +1584,6 @@ class BaseChart {
 	}
 }
 
-const MONTH_NAMES = {
-	"fr": ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
-	"en": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-};
-
-
-
-const DAY_NAMES_SHORT =  {
-	"fr": ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
-	"en": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-};
-
-
-
-const LESS =  {
-	"fr": ["Moins"],
-	"en": ["Less"],
-};
-
-const MORE =  {
-	"fr": ["Plus"],
-	"en": ["More"],
-};
-
-const heatmapTooltip = (lang, day, month, year) => {
-	if (lang === 'fr') {
-		return ' le ' + day + ' ' + month + ' ' + year;
-	}
-	return ' on ' + month + ' ' + day + ', ' + year;
-};
-
 // Playing around with dates
 
 const NO_OF_YEAR_MONTHS = 12;
@@ -1665,8 +1634,8 @@ function areInSameMonth(startDate, endDate) {
 		&& startDate.getFullYear() === endDate.getFullYear();
 }
 
-function getMonthName(i, short= false, lang = "en") {
-	let monthName = MONTH_NAMES[lang][i];
+function getMonthName(i, short= false) {
+	let monthName = window.i18n.picker.monthNames[i];
 	return short ? monthName.slice(0, 3) : monthName;
 }
 
@@ -1891,7 +1860,7 @@ let componentConfigs = {
 	heatDomain: {
 		layerClass: function() { return 'heat-domain domain-' + this.constants.index; },
 		makeElements(data) {
-			let {index, colWidth, rowHeight, squareSize, radius, xTranslate, lang} = this.constants;
+			let {index, colWidth, rowHeight, squareSize, radius, xTranslate} = this.constants;
 			let monthNameHeight = -12;
 			let x = xTranslate, y = 0;
 
@@ -1899,7 +1868,7 @@ let componentConfigs = {
 			data.cols.map((week, weekNo) => {
 				if(weekNo === 1) {
 					this.labels.push(
-						makeText('domain-name', x, monthNameHeight, getMonthName(index, true, lang).toUpperCase(),
+						makeText('domain-name', x, monthNameHeight, getMonthName(index, true).toUpperCase(),
 							{
 								fontSize: 9
 							}
@@ -2306,6 +2275,10 @@ function getMaxCheckpoint(value, distribution) {
 	return distribution.filter(d => d < value).length;
 }
 
+const heatmapTooltip = (lang, day, month, year) => {
+	return window.i18n.htTooltip.replace('{month}', month).replace('{day}', day).replace('{year}', year);
+};
+
 class Heatmap extends BaseChart {
 	constructor(parent, options) {
 		super(parent, options);
@@ -2420,7 +2393,7 @@ class Heatmap extends BaseChart {
 		);
 
 		let y = 0;
-		DAY_NAMES_SHORT[this.lang].forEach((dayName, i) => {
+		window.i18n.daysShort.forEach((dayName, i) => {
 			if([1, 3, 5].includes(i)) {
 				let dayText = makeText('subdomain-name', -this.colWidth/2, y, dayName,
 					{
@@ -2455,7 +2428,7 @@ class Heatmap extends BaseChart {
 					let count = daySquare.getAttribute('data-value');
 					let dateParts = daySquare.getAttribute('data-date').split('-');
 
-					let month = getMonthName(parseInt(dateParts[1])-1, true, this.lang);
+					let month = getMonthName(parseInt(dateParts[1])-1, true);
 
 					let gOff = this.container.getBoundingClientRect(), pOff = daySquare.getBoundingClientRect();
 
@@ -2478,7 +2451,7 @@ class Heatmap extends BaseChart {
 		let y = this.rowHeight;
 		let radius = this.rawChartArgs.radius || 0;
 
-		let lessText = makeText('subdomain-name', x, y, LESS[this.lang],
+		let lessText = makeText('subdomain-name', x, y, window.i18n.less,
 			{
 				fontSize: HEATMAP_SQUARE_SIZE + 1,
 				dy: 9
@@ -2494,7 +2467,7 @@ class Heatmap extends BaseChart {
 		});
 
 		let moreTextX = x + HEATMAP_DISTRIBUTION_SIZE * (HEATMAP_SQUARE_SIZE + 3) + HEATMAP_SQUARE_SIZE/4;
-		let moreText = makeText('subdomain-name', moreTextX, y, MORE[this.lang],
+		let moreText = makeText('subdomain-name', moreTextX, y, window.i18n.more,
 			{
 				fontSize: HEATMAP_SQUARE_SIZE + 1,
 				dy: 9
