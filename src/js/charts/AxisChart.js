@@ -1,13 +1,14 @@
-import BaseChart from './BaseChart';
-import { dataPrep, zeroDataPrep, getShortenedLabels } from '../utils/axis-chart-utils';
-import { AXIS_LEGEND_BAR_SIZE } from '../utils/constants';
 import { getComponent } from '../objects/ChartComponents';
-import { getOffset, fire } from '../utils/dom';
-import { calcChartIntervals, getIntervalSize, getValueRange, getZeroIndex, scale, getClosestInArray } from '../utils/intervals';
+import { dataPrep, getShortenedLabels, zeroDataPrep } from '../utils/axis-chart-utils';
+import {
+	AXIS_LEGEND_BAR_SIZE, BAR_CHART_SPACE_RATIO,
+	LINE_CHART_DOT_SIZE, MIN_BAR_PERCENT_HEIGHT, getLeftOffset, getTopOffset
+} from '../utils/constants';
+import { fire, getOffset } from '../utils/dom';
+import { legendBar, makeOverlay, updateOverlay } from '../utils/draw';
 import { floatTwo } from '../utils/helpers';
-import { makeOverlay, updateOverlay, legendBar } from '../utils/draw';
-import { getTopOffset, getLeftOffset, MIN_BAR_PERCENT_HEIGHT, BAR_CHART_SPACE_RATIO,
-	LINE_CHART_DOT_SIZE } from '../utils/constants';
+import { calcChartIntervals, getClosestInArray, getIntervalSize, getValueRange, getZeroIndex, scale } from '../utils/intervals';
+import BaseChart from './BaseChart';
 
 export default class AxisChart extends BaseChart {
 	constructor(parent, args) {
