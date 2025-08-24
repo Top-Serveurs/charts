@@ -1,11 +1,12 @@
-import pkg from "./package.json";
+import { readFileSync } from "fs";
+const pkg = JSON.parse(readFileSync("./package.json", "utf-8"));
 
-import babel from "rollup-plugin-babel";
+import { babel } from "@rollup/plugin-babel";
 import bundleSize from "rollup-plugin-bundle-size";
-import commonjs from "rollup-plugin-commonjs";
+import commonjs from "@rollup/plugin-commonjs";
 import postcss from "rollup-plugin-postcss";
 import scss from "rollup-plugin-scss";
-import { terser } from "rollup-plugin-terser";
+import terser from "@rollup/plugin-terser";
 
 export default [
   // browser-friendly UMD build
@@ -21,6 +22,8 @@ export default [
       commonjs(),
       babel({
         exclude: ["node_modules/**"],
+        babelHelpers: "bundled",
+        presets: ["@babel/preset-env"],
       }),
       terser(),
       scss({ output: "dist/frappe-charts.min.css" }),
@@ -38,6 +41,8 @@ export default [
     plugins: [
       babel({
         exclude: ["node_modules/**"],
+        babelHelpers: "bundled",
+        presets: ["@babel/preset-env"],
       }),
       terser(),
       postcss(),
